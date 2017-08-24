@@ -64,18 +64,22 @@ def make_public_task(task):
     return new_task
 
 
-@app.route('/shoppinglist/<list_id>', methods=['PUT'])
-def put_list(list_id):
+@app.route('/shoppinglists/<list_id>', methods=['PUT'])
+def edit_list(list_id):
     data = request.get_json()
-    if not request.json or not 'title' in request.json:
-        abort(400)
+    lists = ShoppingList.query.filter_by(id=list_id).first()
 
-    return jsonify({'message': 'list added'}), 201
+    if not lists:
+        return jsonify({'message': 'No item'})
+    lists.name = data['name']
+    db.session.commit()
+
+    return jsonify({'message': 'Item updated'})
 
 
-@app.route('/shoppinglists', methods=['GET'])
+@app.route('/shoppinglists/', methods=['GET'])
 @token_required
-def get_all_lists():
+def get_all_lists(current_user):
     lists = ShoppingList.query.all()
     user_lists = []
     for li in lists:
@@ -87,25 +91,34 @@ def get_all_lists():
     return jsonify({'lists': user_lists}), 201
 
 
-@app.route('/shoppinglist/<list_id>', methods=['GET'])
+@app.route('/shoppinglists/<list_id>', methods=['GET'])
+@token_required
 def get_single_list(current_user, list_id):
-    data = request.get_json()
-    if not request.json or not 'title' in request.json:
-        abort(400)
+    lists = ShoppingList.query.filter_by(id=list_id).all()
+    user_lists = []
+    for li in lists:
+        user_lists.append({
+            "name": li.name,
+            "id": li.id
+        })
+    if not lists:
+        return jsonify({'message': 'No item'})
 
-    return jsonify({'message': 'list added'}), 201
+    return jsonify({'lists': user_lists}), 201
 
 
-@app.route('/shoppinglist/<list_id>', methods=['DELETE'])
+@app.route('/shoppinglists/<list_id>', methods=['DELETE'])
+@token_required
 def delete_list(current_user, list_id):
-    data = request.get_json()
-    if not request.json or not 'title' in request.json:
-        abort(400)
+    lists = ShoppingList.query.filter_by(id=list_id).first()
+    if not lists:
+        return jsonify({'message': 'No item'})
+    db.session.delete(lists)
+    db.session.commit()
+    return jsonify({'message': 'list deleted'})
 
-    return jsonify({'message': 'list added'}), 201
 
-
-@app.route('/shoppinglists', methods=['POST'])
+@app.route('/shoppinglists/', methods=['POST'])
 @token_required
 def create_list(current_user):
     data = request.get_json()
