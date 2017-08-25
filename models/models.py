@@ -42,6 +42,7 @@ class ShoppingList(db.Model):
     def __init__(self, name, user_id):
         """initialize with name."""
         self.name = name
+        self.user_id = user_id
 
     def save(self):
         db.session.add(self)
