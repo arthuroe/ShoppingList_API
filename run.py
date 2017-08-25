@@ -187,6 +187,16 @@ def reset():
     pass
 
 
+@app.route('/auth/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    hashed_password = generate_password_hash(data['password'],  method='sha256')
+    new_user = User(name=data['name'], email=data['email'], password=hashed_password)
+    db.session.add(new_user)
+    db.session.commit()
+    return jsonify({'message': 'New user created'})
+
+
 @app.route('/auth/login', methods=['POST'])
 def login():
     auth = request.authorization
