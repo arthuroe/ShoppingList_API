@@ -122,24 +122,72 @@ def delete_list(current_user, list_id):
 @token_required
 def create_list(current_user):
     data = request.get_json()
-    new_list = ShoppingList(name=data['name'], user_id=current_user)
+    new_list = ShoppingList(name=data['name'], user_id=data['user_id'])
     db.session.add(new_list)
     db.session.commit()
 
     return jsonify({'message': 'list added'}), 201
 
 
-@app.route('/auth/register', methods=['POST'])
-def register():
+@app.route('/shoppinglists/<list_id>/items', methods=['POST'])
+@token_required
+def add_list_item(current_user, list_id):
     data = request.get_json()
-    hashed_password = generate_password_hash(data['password'],  method='sha256')
-    new_user = User(name=data['name'], email=data['email'], password=hashed_password)
-    db.session.add(new_user)
+    new_item = Item(name=data['name'], shoppinglist_id=list_id)
+    db.session.add(new_item)
     db.session.commit()
-    return jsonify({'message': 'New user created'})
+
+    return jsonify({'message': 'item added'}), 201
 
 
-@app.route('/auth/login')
+@app.route('/shoppinglists/<list_id>/items', methods=['GET'])
+@token_required
+def get_items(current_user, list_id):
+    items = Item.query.filter_by(shoppinglist_id=list_id).all()
+    list_items = []
+    for item in items:
+        list_items.append({
+            "name": item.name,
+            "id": item.id
+        })
+
+    return jsonify({'list items': list_items}), 201
+
+
+@app.route('/shoppinglists/<list_id>/items/<item_id>', methods=['PUT'])
+@token_required
+def edit_list_item(current_user, list_id, item_id):
+    data = request.get_json()
+    items = Item.query.filter_by(id=item_id).first()
+    items.name = data['name']
+    db.session.commit()
+
+    return jsonify({'message': 'item edited'}), 201
+
+
+@app.route('/shoppinglists/<list_id>/items/<item_id>', methods=['DELETE'])
+@token_required
+def delete_list_item(current_user, list_id, item_id):
+    items = Item.query.filter_by(id=item_id).first()
+    if not items:
+        return jsonify({'message': 'No item'})
+    db.session.delete(items)
+    db.session.commit()
+
+    return jsonify({'message': 'item deleted'}), 201
+
+
+@app.route('/auth/logout', methods=['POST'])
+def logout():
+    pass
+
+
+@app.route('/auth/reset-password', methods=['POST'])
+def reset():
+    pass
+
+
+@app.route('/auth/login', methods=['POST'])
 def login():
     auth = request.authorization
     if not auth or not auth.username or not auth.password:
