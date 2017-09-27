@@ -7,6 +7,7 @@ import tempfile
 from base64 import b64encode
 from app.models import db, User
 from app import app
+import pytest
 
 
 class AuthTestCase(unittest.TestCase):
