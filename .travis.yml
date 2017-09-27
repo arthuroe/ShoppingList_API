@@ -10,11 +10,11 @@ python:
 install:
 - pip install coverage
 - pip install coveralls
+- pip install pytest-cov
 - pip install -r requirements.txt
 
 script:
-- python tests/test_auth.py
-- python tests/test_api.py
+- py.test --cov=app app/tests/
 
 after_success:
 - coverage report
