@@ -70,7 +70,7 @@ class AuthTestCase(unittest.TestCase):
                             headers={'Content-Type': 'application/json', 'access-token': access_token})
         self.assertEqual(res.status_code, 201)
 
-        get_result = self.app.get('/shoppinglists/', headers={'Content-Type': 'application/json',
+        get_result = self.app.get('/shoppinglists', headers={'Content-Type': 'application/json',
                                                               'access-token': access_token})
         self.assertEqual(get_result.status_code, 200)
 
@@ -84,7 +84,7 @@ class AuthTestCase(unittest.TestCase):
                             headers={'Content-Type': 'application/json', 'access-token': access_token})
         self.assertEqual(res.status_code, 201)
 
-        get_result = self.app.get('/shoppinglists/?q=test_list', headers={'Content-Type': 'application/json',
+        get_result = self.app.get('/shoppinglists?q=test_list', headers={'Content-Type': 'application/json',
                                                                           'access-token': access_token})
         self.assertEqual(get_result.status_code, 200)
 
