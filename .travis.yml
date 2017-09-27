@@ -17,7 +17,7 @@ services:
   - postgresql
 
 before_script:
-  - psql -c 'create database shoppinglist;' -U arthur
+  - psql -c 'create database shoppinglist;' -U postgres
 
 script:
 - py.test --cov=app tests/
