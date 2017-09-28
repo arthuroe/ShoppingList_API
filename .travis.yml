@@ -17,8 +17,8 @@ services:
   - postgresql
 
 before_script:
-  - export DATABASE_TEST_URL=postgresql://arthur:dbadmin@localhost/shoppinglist
-  - psql -c 'create database shoppinglist;' -U arthur -P dbadmin
+  - export DATABASE_TEST_URL=postgresql://arthur:@localhost/shoppinglist
+  - psql -c 'create database shoppinglist;' -U arthur 
   - python manage.py db init
   - python manage.py db migrate
   - python manage.py db upgrade
