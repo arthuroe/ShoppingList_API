@@ -17,11 +17,19 @@ services:
   - postgresql
 
 before_script:
-  - psql -c 'create database shoppinglist;' -U postgres
+  - export DATABASE_TEST_URL=postgresql://arthur:dbadmin@localhost/shoppinglist
+  - psql -c 'create database shoppinglist;' -U arthur -P dbadmin
+  - python manage.py db init
+  - python manage.py db migrate
+  - python manage.py db upgrade
 
 script:
-- py.test --cov=app tests/
+- python -m pytest tests/
 
 after_success:
 - coverage report
 - coveralls
+
+
+
+
