@@ -14,13 +14,10 @@ install:
 - pip install -r requirements.txt
 
 services:
-  - postgresql
+
 
 before_script:
-  - psql -c 'create database testdb;' -U postgres
-  - python manage.py db init
-  - python manage.py db migrate
-  - python manage.py db upgrade
+
 
 script:
 - python -m pytest tests/
