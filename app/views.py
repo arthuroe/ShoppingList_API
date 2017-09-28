@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, abort, make_response, request, url_for
+from flask import Flask, jsonify, abort, make_response, request, url_for, render_template
 from app import app
 from app.models import db, User, ShoppingList, Item, BlacklistToken
 from flask_httpauth import HTTPBasicAuth
@@ -58,6 +58,12 @@ def not_found(error):
 @auth.error_handler
 def unauthorized():
     return make_response(jsonify({'error': 'Unauthorized access'}), 403)
+
+
+@app.route('/')
+def index():
+
+    return render_template('index.html')
 
 
 @app.route('/shoppinglists/<list_id>', methods=['PUT'])
