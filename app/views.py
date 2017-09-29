@@ -5,6 +5,7 @@ from flask_httpauth import HTTPBasicAuth
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
+import os
 import datetime
 from app.auth.views import auth
 
@@ -12,7 +13,7 @@ from app.auth.views import auth
 auth = HTTPBasicAuth()
 
 app.config['DEBUG'] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://arthur:dbadmin@localhost/shoppinglist'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI','postgresql://arthur:dbadmin@localhost/shoppinglist')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'cronica!r1m'
 db.init_app(app)
@@ -44,6 +45,20 @@ def token_required(f):
         return f(current_user, *args, **kwargs)
     return wrap
 
+# decorator used to allow cross origin requests
+@app.after_request
+def apply_cross_origin_header(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    response.headers["Access-Control-Allow-Methods"] = "GET,HEAD,OPTIONS," \
+                                                       "POST,PUT,DELETE"
+    response.headers["Access-Control-Allow-Headers"] = "Access-Control-Allow-" \
+        "Headers, Origin,Accept, X-Requested-With, Content-Type, " \
+        "Access-Control-Request-Method, Access-Control-Request-Headers," \
+        "Access-Control-Allow-Origin, Authorization"
+
+    return response
 
 @auth.error_handler
 def unauthorized():
