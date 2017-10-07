@@ -17,7 +17,9 @@ services:
 - postgresql
 
 before_script:
-- psql -c 'create database shoppinglist;' -U postgres
+- psql -c "CREATE ROLE arthuroe PASSWORD 'dbadmin' CREATEDB CREATEROLE INHERIT LOGIN;" -U postgres
+- psql -c "create database shoppinglist;" -U postgres
+
 
 script:
 - python -m pytest --cov tests
