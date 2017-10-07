@@ -11,9 +11,11 @@ from app.auth.views import auth
 
 
 auth = HTTPBasicAuth()
+postgres_local_base = 'postgresql://arthuroe:dbadmin@localhost/'
+database_name = 'shoppinglist'
 
 app.config['DEBUG'] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI','postgresql://arthur:dbadmin@localhost/shoppinglist')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', postgres_local_base + database_name)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'cronica!r1m'
 db.init_app(app)
@@ -159,9 +161,9 @@ def delete_list(current_user, list_id):
 @token_required
 def create_list(current_user):
     data = request.get_json()
-    new = ShoppingList.query.filter_by(name=data['name']).first()    
+    new = ShoppingList.query.filter_by(name=data['name']).first()
     if new:
-        return jsonify({'message': 'list already exists'}), 202 
+        return jsonify({'message': 'list already exists'}), 202
     new_list = ShoppingList(name=data['name'], user_id=current_user)
     db.session.add(new_list)
     db.session.commit()
@@ -173,9 +175,9 @@ def create_list(current_user):
 @token_required
 def add_list_item(current_user, list_id):
     data = request.get_json()
-    new = Item.query.filter_by(name=data['name']).first()    
+    new = Item.query.filter_by(name=data['name']).first()
     if new:
-        return jsonify({'message': 'Item already exists'}), 202 
+        return jsonify({'message': 'Item already exists'}), 202
     new_item = Item(name=data['name'], shoppinglist_id=list_id)
     db.session.add(new_item)
     db.session.commit()
