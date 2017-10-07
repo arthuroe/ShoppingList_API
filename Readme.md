@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/arthuroe/ShoppingList_API.svg?branch=master)](https://travis-ci.org/arthuroe/ShoppingList_API)
+[![Coverage Status](https://coveralls.io/repos/github/arthuroe/ShoppingList_API/badge.svg?branch=master)](https://coveralls.io/github/arthuroe/ShoppingList_API?branch=master)
 
 ## SHOPPINGLIST API
 
@@ -22,4 +23,3 @@ Run python app.y
 To test this api use curl or postman(chrome extension) with the url below:
 
 http://localhost:5000
-
