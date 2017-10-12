@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/arthuroe/ShoppingList_API.svg?branch=master)](https://travis-ci.org/arthuroe/ShoppingList_API)
 [![Coverage Status](https://coveralls.io/repos/github/arthuroe/ShoppingList_API/badge.svg?branch=master)](https://coveralls.io/github/arthuroe/ShoppingList_API?branch=master)
+[![Code Climate](https://codeclimate.com/github/arthuroe/ShoppingList_API/badges/gpa.svg)](https://codeclimate.com/github/arthuroe/ShoppingList_API)
 
 ## SHOPPINGLIST API
 
