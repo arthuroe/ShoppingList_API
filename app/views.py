@@ -7,7 +7,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import os
 import datetime
-from app.auth.views import auth
+import re
+from app.auth.views import auth, require_fields
 
 
 auth = HTTPBasicAuth()
@@ -15,7 +16,8 @@ postgres_local_base = 'postgresql://arthuroe:dbadmin@localhost/'
 database_name = 'shoppinglist'
 
 app.config['DEBUG'] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', postgres_local_base + database_name)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
+    'DATABASE_URL', postgres_local_base + database_name)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'cronica!r1m'
 db.init_app(app)
@@ -40,7 +42,7 @@ def token_required(f):
             # return current_user
         except jwt.ExpiredSignatureError:
             # the token is expired, return an error string
-            return "Expired token. Please login to get a new token"
+            return jsonify({"messge": "Expired token. Please login to get a new token"}), 403
         except jwt.InvalidTokenError:
             # the token is invalid, return an error string
             return jsonify({'message': 'Invalid token. Please register or login'}), 403
@@ -48,6 +50,8 @@ def token_required(f):
     return wrap
 
 # decorator used to allow cross origin requests
+
+
 @app.after_request
 def apply_cross_origin_header(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
@@ -61,6 +65,7 @@ def apply_cross_origin_header(response):
         "Access-Control-Allow-Origin, Authorization"
 
     return response
+
 
 @auth.error_handler
 def unauthorized():
@@ -79,11 +84,11 @@ def unauthorized():
 
 @app.route('/')
 def index():
-
     return render_template('index.html')
 
 
 @app.route('/shoppinglists/<list_id>', methods=['PUT'])
+@require_fields('name')
 def edit_list(list_id):
     data = request.get_json()
     lists = ShoppingList.query.filter_by(id=list_id).first()
@@ -96,12 +101,11 @@ def edit_list(list_id):
     return jsonify({'message': 'Item updated'}), 201
 
 
-
 @app.route('/shoppinglists', methods=['GET'])
 @token_required
 def get_all_lists(current_user):
     name = request.args.get('q', '')
-    limit = request.args.get('limit', 5, type=int)
+    limit = request.args.get('limit', None, type=int)
     page = request.args.get('page', 1, type=int)
     user_lists = []
     if name:
@@ -113,8 +117,9 @@ def get_all_lists(current_user):
             })
         return jsonify({'lists': user_lists}), 200
     if limit:
-       lists = ShoppingList.query.paginate(page,limit,False).items
-       for li in lists:
+        lists = ShoppingList.query.filter_by(
+            user_id=current_user).paginate(page, limit, False).items
+        for li in lists:
             user_lists.append({
                 "name": li.name,
                 "id": li.id
@@ -159,6 +164,7 @@ def delete_list(current_user, list_id):
 
 @app.route('/shoppinglists/', methods=['POST'])
 @token_required
+@require_fields('name')
 def create_list(current_user):
     data = request.get_json()
     new = ShoppingList.query.filter_by(name=data['name']).first()
@@ -173,6 +179,7 @@ def create_list(current_user):
 
 @app.route('/shoppinglists/<list_id>/items', methods=['POST'])
 @token_required
+@require_fields('name')
 def add_list_item(current_user, list_id):
     data = request.get_json()
     new = Item.query.filter_by(name=data['name']).first()
@@ -215,6 +222,7 @@ def get_single_item(current_user, list_id, item_id):
 
 @app.route('/shoppinglists/<list_id>/items/<item_id>', methods=['PUT'])
 @token_required
+@require_fields('name')
 def edit_list_item(current_user, list_id, item_id):
     data = request.get_json()
     items = Item.query.filter_by(id=item_id).first()
@@ -239,6 +247,7 @@ def delete_list_item(current_user, list_id, item_id):
 
 
 @app.route('/auth/reset-password', methods=['POST'])
+@require_fields('email', 'password')
 def reset_password():
     data = request.get_json()
     email = data['email']
