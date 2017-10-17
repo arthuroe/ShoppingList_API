@@ -1,13 +1,11 @@
-from flask import Flask, jsonify, abort, make_response, request, url_for, render_template
+import os
+from functools import wraps
+import jwt
+from flask import Flask, jsonify, make_response, request, render_template
 from app import app
 from app.models import db, User, ShoppingList, Item, BlacklistToken
 from flask_httpauth import HTTPBasicAuth
-from functools import wraps
-from werkzeug.security import generate_password_hash, check_password_hash
-import jwt
-import os
-import datetime
-import re
+from werkzeug.security import generate_password_hash
 from app.auth.views import auth, require_fields
 
 
@@ -84,60 +82,74 @@ def unauthorized():
 
 @app.route('/')
 def index():
+    """
+    This route
+    """
     return render_template('index.html')
 
 
 @app.route('/shoppinglists/<list_id>', methods=['PUT'])
 @require_fields('name')
 def edit_list(list_id):
+    """
+    This route enables a user to update a shopping list
+    """
     data = request.get_json()
-    lists = ShoppingList.query.filter_by(id=list_id).first()
+    if not data['name']:
+        return make_response(jsonify({"message": "Name field required"})), 400
+    list_to_edit = ShoppingList.query.filter_by(id=list_id).first()
 
-    if not lists:
+    if not list_to_edit:
         return jsonify({'message': 'No item'}), 404
-    lists.name = data['name']
+    list_to_edit.name = data['name']
     db.session.commit()
 
-    return jsonify({'message': 'Item updated'}), 201
+    return jsonify({'message': 'Item updated'}), 200
 
 
 @app.route('/shoppinglists', methods=['GET'])
 @token_required
 def get_all_lists(current_user):
+    """
+    This route enables a user to view all shoppinglists
+    """
     name = request.args.get('q', '')
     limit = request.args.get('limit', None, type=int)
     page = request.args.get('page', 1, type=int)
     user_lists = []
     if name:
-        lists = ShoppingList.query.filter_by(user_id=current_user, name=name).all()
-        for li in lists:
+        shopping_list = ShoppingList.query.filter_by(user_id=current_user, name=name).all()
+        for li in shopping_list:
             user_lists.append({
                 "name": li.name,
                 "id": li.id
             })
-        return jsonify({'lists': user_lists}), 200
+        return jsonify({'shoppinglist': user_lists}), 200
     if limit:
-        lists = ShoppingList.query.filter_by(
+        shoppinglists = ShoppingList.query.filter_by(
             user_id=current_user).paginate(page, limit, False).items
-        for li in lists:
+        for li in shoppinglists:
             user_lists.append({
                 "name": li.name,
                 "id": li.id
             })
     else:
-        all_lists = ShoppingList.query.filter_by(user_id=current_user).all()
-        for li in all_lists:
+        all_shoppinglists = ShoppingList.query.filter_by(user_id=current_user).all()
+        for li in all_shoppinglists:
             user_lists.append({
                 "name": li.name,
                 "id": li.id
             })
 
-    return jsonify({'all_lists': user_lists}), 200
+    return jsonify({'shoppinglists': user_lists}), 200
 
 
 @app.route('/shoppinglists/<list_id>', methods=['GET'])
 @token_required
 def get_single_list(current_user, list_id):
+    """
+    This route enables a user to view a single shoppinglist
+    """
     lists = ShoppingList.query.filter_by(id=list_id).all()
     user_lists = []
     for li in lists:
@@ -148,28 +160,36 @@ def get_single_list(current_user, list_id):
     if not lists:
         return jsonify({'message': 'No list found'}), 404
 
-    return jsonify({'lists': user_lists}), 200
+    return jsonify({'shoppinglist': user_lists}), 200
 
 
 @app.route('/shoppinglists/<list_id>', methods=['DELETE'])
 @token_required
 def delete_list(current_user, list_id):
-    lists = ShoppingList.query.filter_by(id=list_id).first()
-    if not lists:
+    """
+    This route enables a user to delete a shoppinglist
+    """
+    list_to_delete = ShoppingList.query.filter_by(id=list_id).first()
+    if not list_to_delete:
         return jsonify({'message': 'No item'}), 404
-    db.session.delete(lists)
+    db.session.delete(list_to_delete)
     db.session.commit()
-    return jsonify({'message': 'list deleted'}), 201
+    return jsonify({'message': 'list deleted'}), 200
 
 
 @app.route('/shoppinglists/', methods=['POST'])
 @token_required
 @require_fields('name')
 def create_list(current_user):
+    """
+    This route enables a user to create a shoppinglist
+    """
     data = request.get_json()
-    new = ShoppingList.query.filter_by(name=data['name']).first()
-    if new:
-        return jsonify({'message': 'list already exists'}), 202
+    if not data['name']:
+        return make_response(jsonify({"message": "Name field required"})), 400
+    new_shoppinglist = ShoppingList.query.filter_by(name=data['name']).first()
+    if new_shoppinglist:
+        return jsonify({'message': 'list already exists'}), 400
     new_list = ShoppingList(name=data['name'], user_id=current_user)
     db.session.add(new_list)
     db.session.commit()
@@ -181,10 +201,15 @@ def create_list(current_user):
 @token_required
 @require_fields('name')
 def add_list_item(current_user, list_id):
+    """
+    This route enables a user to create a shoppinglist
+    """
     data = request.get_json()
-    new = Item.query.filter_by(name=data['name']).first()
-    if new:
-        return jsonify({'message': 'Item already exists'}), 202
+    if not data['name']:
+        return make_response(jsonify({"message": "Name field required"})), 400
+    new_shoppinglist = Item.query.filter_by(name=data['name']).first()
+    if new_shoppinglist:
+        return jsonify({'message': 'Item already exists'}), 400
     new_item = Item(name=data['name'], shoppinglist_id=list_id)
     db.session.add(new_item)
     db.session.commit()
@@ -195,60 +220,77 @@ def add_list_item(current_user, list_id):
 @app.route('/shoppinglists/<list_id>/items', methods=['GET'])
 @token_required
 def get_items(current_user, list_id):
-    items = Item.query.filter_by(shoppinglist_id=list_id).all()
+    """
+    This route enables a user to view a shoppinglist's items
+    """
+    shoppinglist_items = Item.query.filter_by(shoppinglist_id=list_id).all()
     list_items = []
-    for item in items:
+    for item in shoppinglist_items:
         list_items.append({
             "name": item.name,
             "id": item.id
         })
 
-    return jsonify({'list items': list_items}), 200
+    return jsonify({'shoppinglist items': list_items}), 200
 
 
 @app.route('/shoppinglists/<list_id>/items/<item_id>', methods=['GET'])
 @token_required
 def get_single_item(current_user, list_id, item_id):
-    items = Item.query.filter_by(id=item_id).all()
-    list_items = []
-    for item in items:
-        list_items.append({
+    """
+    This route enables a user to view a single item from a shoppinglist
+    """
+    shoppinglist_item = Item.query.filter_by(id=item_id).all()
+    list_item = []
+    for item in shoppinglist_item:
+        list_item.append({
             "name": item.name,
             "id": item.id
         })
 
-    return jsonify({'list items': list_items}), 200
+    return jsonify({'shoppinglist item': list_item}), 200
 
 
 @app.route('/shoppinglists/<list_id>/items/<item_id>', methods=['PUT'])
 @token_required
 @require_fields('name')
 def edit_list_item(current_user, list_id, item_id):
+    """
+    This route enables a user to update a shoppinglist's item
+    """
     data = request.get_json()
-    items = Item.query.filter_by(id=item_id).first()
-    if not items:
+    if not data['name']:
+        return make_response(jsonify({"message": "Name field required"})), 400
+    item_to_edit = Item.query.filter_by(id=item_id).first()
+    if not item_to_edit:
         return jsonify({'message': 'No item'}), 404
-    items.name = data['name']
+    item_to_edit.name = data['name']
     db.session.commit()
 
-    return jsonify({'message': 'item edited'}), 201
+    return jsonify({'message': 'item edited'}), 200
 
 
 @app.route('/shoppinglists/<list_id>/items/<item_id>', methods=['DELETE'])
 @token_required
 def delete_list_item(current_user, list_id, item_id):
-    items = Item.query.filter_by(id=item_id).first()
-    if not items:
+    """
+    This route enables a user to delete a shoppinglist's item
+    """
+    item_to_delete = Item.query.filter_by(id=item_id).first()
+    if not item_to_delete:
         return jsonify({'message': 'No item'}), 404
-    db.session.delete(items)
+    db.session.delete(item_to_delete)
     db.session.commit()
 
-    return jsonify({'message': 'item deleted'}), 201
+    return jsonify({'message': 'item deleted'}), 200
 
 
 @app.route('/auth/reset-password', methods=['POST'])
 @require_fields('email', 'password')
 def reset_password():
+    """
+    This route enables a user to reset their passowrd
+    """
     data = request.get_json()
     email = data['email']
     user = User.query.filter_by(email=email).first()
@@ -258,13 +300,15 @@ def reset_password():
 
     db.session.commit()
     response = {'message': 'You have successfully changed your password.'}
-    return make_response(jsonify(response)), 201
+    return make_response(jsonify(response)), 200
 
 
 @app.route('/auth/logout', methods=['POST'])
 @token_required
 def logout(current_user):
-        # get auth token
+    """
+    This route enables a user to logout
+    """
     if 'access-token' in request.headers:
         token = request.headers['access-token']
         # mark the token as blacklisted
@@ -279,14 +323,14 @@ def logout(current_user):
             }
             return make_response(jsonify(responseObject)), 200
         except Exception as e:
-            responseObject = {
+            response = {
                 'status': 'fail',
                 'message': 'Already logged Out'
             }
-            return make_response(jsonify(responseObject)), 200
+            return make_response(jsonify(response)), 400
     else:
-        responseObject = {
+        response= {
             'status': 'fail',
             'message': 'Provide a valid auth token.'
         }
-        return make_response(jsonify(responseObject)), 403
+        return make_response(jsonify(response)), 403

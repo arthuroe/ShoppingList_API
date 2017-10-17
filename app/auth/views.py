@@ -12,7 +12,7 @@ import datetime
 auth = Blueprint('auth', __name__)
 
 
-def require_fields(*fields):
+def require_fields(*fields, **kwfields):
     def decorate(func):
         @wraps(func)
         def wrap(*args, **kwargs):
@@ -20,6 +20,11 @@ def require_fields(*fields):
                 if not request.get_json(field, None):
                     return jsonify({
                         "error_msg": "Please fill all fields"
+                    })
+            for key, value in kwfields.items():
+                if not re.match(r'{}'.format(value), request.get_json(key, None)):
+                    return jsonify({
+                        "error_msg": "Invalid {}".format(key)
                     })
 
             return func(*args, **kwargs)
@@ -31,6 +36,9 @@ def require_fields(*fields):
 @app.route('/auth/register', methods=['POST'])
 @require_fields('name', 'email', 'password')
 def register():
+    """
+    This route enables a user to register with the API
+    """
     data = request.get_json()
     if not data['email'] or not data['password'] or not data['name']:
         return make_response(jsonify({"message": "All fields are required"})), 403
@@ -49,13 +57,15 @@ def register():
             'status': 'fail',
             'message': 'User already exists. Please Log in.',
         }
-        return make_response(jsonify(responseObject)), 202
+        return make_response(jsonify(responseObject)), 401
 
 
 @app.route('/auth/login', methods=['POST'])
 @require_fields('email', 'password')
 def login():
-
+    """
+    This route enables a user to login into the API
+    """
     data = request.get_json()
 
     if not data['email'] or not data['password']:
