@@ -119,7 +119,7 @@ class AuthTestCase(unittest.TestCase):
         update_res = self.app.put('/shoppinglists/1', data=json.dumps({"name": "new_name"}),
                                   headers={'Content-Type': 'application/json', 'access-token': access_token})
 
-        self.assertEqual(update_res.status_code, 201)
+        self.assertEqual(update_res.status_code, 200)
 
     def test_delete_shopping_list(self):
         """Test to delete shopping list from the database"""
@@ -135,7 +135,7 @@ class AuthTestCase(unittest.TestCase):
         self.assertEqual(get_result.status_code, 200)
         del_result = self.app.delete('/shoppinglists/1', headers={'Content-Type': 'application/json',
                                                                   'access-token': access_token})
-        self.assertEqual(del_result.status_code, 201)
+        self.assertEqual(del_result.status_code, 200)
 
     def test_add_item_to_shopping_list(self):
         """Test to add items to a shopping list"""
@@ -170,7 +170,7 @@ class AuthTestCase(unittest.TestCase):
         self.assertEqual(item.status_code, 201)
         update_item = self.app.put('/shoppinglists/1/items/1', data=json.dumps({"name": "new_name"}),
                                    headers={'Content-Type': 'application/json', 'access-token': access_token})
-        self.assertEqual(update_item.status_code, 201)
+        self.assertEqual(update_item.status_code, 200)
 
     def test_view_items_in_shopping_list(self):
         """Test view items in shopping list"""
@@ -208,7 +208,7 @@ class AuthTestCase(unittest.TestCase):
         self.assertEqual(item.status_code, 201)
         delete_item = self.app.delete(
             '/shoppinglists/1/items/1', headers={'Content-Type': 'application/json', 'access-token': access_token})
-        self.assertEqual(delete_item.status_code, 201)
+        self.assertEqual(delete_item.status_code, 200)
 
 
 if __name__ == '__main__':

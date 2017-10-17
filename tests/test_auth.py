@@ -43,14 +43,13 @@ class AuthTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 201)
         response = self.app.post('/auth/register', data=json.dumps(self.user_data),
                                  content_type='application/json')
-        self.assertEqual(response.status_code, 202)
+        self.assertEqual(response.status_code, 401)
         # get the results returned in json format
         data = json.loads(response.data.decode())
         self.assertTrue(data['status'] == 'fail')
         self.assertTrue(
             data['message'] == 'User already exists. Please Log in.')
         self.assertTrue(response.content_type == 'application/json')
-        self.assertEqual(response.status_code, 202)
 
     def test_user_login(self):
         """Test registered user can login."""
@@ -85,7 +84,7 @@ class AuthTestCase(unittest.TestCase):
 
         data = json.loads(rese.data.decode())
         self.assertEqual(data['message'], "You have successfully changed your password.")
-        self.assertEqual(rese.status_code, 201)
+        self.assertEqual(rese.status_code, 200)
 
     def test_non_user_cannot_reset_password(self):
         """Test non registered user cannot reset password."""
