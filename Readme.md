@@ -11,16 +11,42 @@ Shoppinglist API allows users to register, login, create a shoppinglist and item
 
 Create a virtualenv, and activate it:
 
-$ python3 -m venv shop $ source shop/bin/activate
+$ python3 -m venv shop
+
+$ source shop/bin/activate
 
 Install requirements:
 
 $ pip install -r requirements.txt
 
-To run the application
+Install postgresql
 
-Run python app.y
+Create a database in postgresql
+
+$ create database shopping_list
+
+$ create user
+
+## Run Migrations for the database
+
+$ python manage.py db init
+
+$ python manage.py db init
+
+$ python manage.py db init
+
+## Run tests on the code in the project folder with
+
+$ Pytest
+
+## Run the application
+
+Run python run.py
 
 To test this api use curl or postman(chrome extension) with the url below:
 
-http://localhost:5000
+$ https://shoppinglist-api.herokuapp.com/
+
+To view the documentation use the link below
+
+$ http://docs.shoppinglist10.apiary.io/
