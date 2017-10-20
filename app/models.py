@@ -54,6 +54,14 @@ class ShoppingList(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+    @property
+    def serialize(self):
+        """Return object data in easily serializeable format"""
+        return {
+            'name': self.name,
+            'id': self.id,
+        }
+
 
 class Item(db.Model):
     """
@@ -67,6 +75,14 @@ class Item(db.Model):
     shoppinglist_id = db.Column(db.Integer, db.ForeignKey('shoppinglists.id'))
     shoppinglist = db.relationship(
         'ShoppingList', backref=db.backref('items', lazy='dynamic'))
+
+    @property
+    def serialize(self):
+        """Return object data in easily serializeable format"""
+        return {
+            'name': self.name,
+            'id': self.id,
+        }
 
 
 class BlacklistToken(db.Model):
