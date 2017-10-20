@@ -1,21 +1,32 @@
-from flask import Flask, jsonify, abort, make_response, request, url_for, Blueprint
-from app import app
-from app.models import db, User, BlacklistToken
-from flask_httpauth import HTTPBasicAuth
-from functools import wraps
-from werkzeug.security import generate_password_hash, check_password_hash
-import re
-import jwt
-import json
+"""
+Authentication Blueprint
+"""
+
 import datetime
+import re
+from functools import wraps
+from flask import jsonify, make_response, request, Blueprint
+from app import app
+from app.models import db, User
+from werkzeug.security import check_password_hash
+import jwt
 
 auth = Blueprint('auth', __name__)
 
 
 def require_fields(*fields, **kwfields):
+    """
+    This function validates user input
+    """
     def decorate(func):
+        """
+        This function validates user input
+        """
         @wraps(func)
         def wrap(*args, **kwargs):
+            """
+            This function validates user input
+            """
             for field in fields:
                 if not request.get_json(field, None):
                     return jsonify({
@@ -47,17 +58,17 @@ def register():
         new_user = User(name=data['name'], email=data['email'], password=data['password'])
         db.session.add(new_user)
         db.session.commit()
-        responseObject = {
+        response = {
             'status': 'success',
             'message': 'Successfully registered.'
         }
-        return make_response(jsonify(responseObject)), 201
+        return make_response(jsonify(response)), 201
     else:
-        responseObject = {
+        response = {
             'status': 'fail',
             'message': 'User already exists. Please Log in.',
         }
-        return make_response(jsonify(responseObject)), 401
+        return make_response(jsonify(response)), 401
 
 
 @app.route('/auth/login', methods=['POST'])
@@ -72,11 +83,11 @@ def login():
         return make_response(jsonify({"message": "All fields are required"})), 403
     user = User.query.filter_by(email=data['email']).first()
     if not user:
-        responseObject = {
+        response = {
             'status': 'fail',
             'message': 'User does not exist.'
         }
-        return make_response(jsonify(responseObject)), 401
+        return make_response(jsonify(response)), 401
 
     if check_password_hash(user.password, data['password']):
         payload = {

@@ -1,0 +1,6 @@
+## other configuration excluded from example...
+Python: false
+
+exclude_paths:
+- "app/views.py"
+- "migrations/"
