@@ -1,6 +1,18 @@
-## other configuration excluded from example...
-Python: false
+engines:
+  rubocop:
+    enabled: true
+    #checks:
+    #  Rubocop/Metrics/ClassLength:
+    #    enabled: false
+  duplication:
+    enabled: false
+    config:
+      languages:
+      - python:
+
+ratings:
+  paths:
+  - app/**
 
 exclude_paths:
-- "app/views.py"
-- "migrations/"
+- migrations/**/*
