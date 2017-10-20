@@ -1,7 +1,11 @@
+"""
+views.py
+"""
+
 import os
 from functools import wraps
 import jwt
-from flask import Flask, jsonify, make_response, request, render_template
+from flask import jsonify, make_response, request, render_template
 from app import app
 from app.models import db, User, ShoppingList, Item, BlacklistToken
 from flask_httpauth import HTTPBasicAuth
@@ -21,8 +25,11 @@ app.config['SECRET_KEY'] = 'cronica!r1m'
 db.init_app(app)
 
 
-def token_required(f):
-    @wraps(f)
+def token_required(function):
+    """
+    This checks for authentication token
+    """
+    @wraps(function)
     def wrap(*args, **kwargs):
         token = None
         if 'access-token' in request.headers:
@@ -44,7 +51,7 @@ def token_required(f):
         except jwt.InvalidTokenError:
             # the token is invalid, return an error string
             return jsonify({'message': 'Invalid token. Please register or login'}), 403
-        return f(current_user, *args, **kwargs)
+        return function(current_user, *args, **kwargs)
     return wrap
 
 # decorator used to allow cross origin requests
@@ -52,6 +59,9 @@ def token_required(f):
 
 @app.after_request
 def apply_cross_origin_header(response):
+    """
+    This function enables CORS
+    """
     response.headers['Access-Control-Allow-Origin'] = '*'
 
     response.headers["Access-Control-Allow-Credentials"] = "true"
@@ -65,25 +75,26 @@ def apply_cross_origin_header(response):
     return response
 
 
-@auth.error_handler
-def unauthorized():
-    return make_response(jsonify({'error': 'Unauthorized access'}), 401)
-
-
 @app.errorhandler(404)
 def not_found(error):
+    """
+    This function handles 404 errors
+    """
     return make_response(jsonify({'error': 'Not found'}), 404)
 
 
 @auth.error_handler
 def unauthorized():
+    """
+    This function  handles 403 errors
+    """
     return make_response(jsonify({'error': 'Unauthorized access'}), 403)
 
 
 @app.route('/')
 def index():
     """
-    This route
+    This route enables a user access API documemntattion
     """
     return render_template('index.html')
 
@@ -119,27 +130,15 @@ def get_all_lists(current_user):
     user_lists = []
     if name:
         shopping_list = ShoppingList.query.filter_by(user_id=current_user, name=name).all()
-        for li in shopping_list:
-            user_lists.append({
-                "name": li.name,
-                "id": li.id
-            })
+        user_lists = [i.serialize for i in shopping_list]
         return jsonify({'shoppinglist': user_lists}), 200
     if limit:
         shoppinglists = ShoppingList.query.filter_by(
             user_id=current_user).paginate(page, limit, False).items
-        for li in shoppinglists:
-            user_lists.append({
-                "name": li.name,
-                "id": li.id
-            })
+        user_lists = [i.serialize for i in shoppinglists]
     else:
         all_shoppinglists = ShoppingList.query.filter_by(user_id=current_user).all()
-        for li in all_shoppinglists:
-            user_lists.append({
-                "name": li.name,
-                "id": li.id
-            })
+        user_lists = [i.serialize for i in all_shoppinglists]
 
     return jsonify({'shoppinglists': user_lists}), 200
 
@@ -152,11 +151,7 @@ def get_single_list(current_user, list_id):
     """
     lists = ShoppingList.query.filter_by(id=list_id).all()
     user_lists = []
-    for li in lists:
-        user_lists.append({
-            "name": li.name,
-            "id": li.id
-        })
+    user_lists = [i.serialize for i in lists]
     if not lists:
         return jsonify({'message': 'No list found'}), 404
 
@@ -225,11 +220,7 @@ def get_items(current_user, list_id):
     """
     shoppinglist_items = Item.query.filter_by(shoppinglist_id=list_id).all()
     list_items = []
-    for item in shoppinglist_items:
-        list_items.append({
-            "name": item.name,
-            "id": item.id
-        })
+    list_items = [item.serialize for item in shoppinglist_items]
 
     return jsonify({'shoppinglist items': list_items}), 200
 
@@ -242,12 +233,7 @@ def get_single_item(current_user, list_id, item_id):
     """
     shoppinglist_item = Item.query.filter_by(id=item_id).all()
     list_item = []
-    for item in shoppinglist_item:
-        list_item.append({
-            "name": item.name,
-            "id": item.id
-        })
-
+    list_item = [item.serialize for item in shoppinglist_item]
     return jsonify({'shoppinglist item': list_item}), 200
 
 
@@ -317,11 +303,11 @@ def logout(current_user):
             # insert the token
             db.session.add(blacklist_token)
             db.session.commit()
-            responseObject = {
+            response = {
                 'status': 'success',
                 'message': 'Successfully logged out.'
             }
-            return make_response(jsonify(responseObject)), 200
+            return make_response(jsonify(response)), 200
         except Exception as e:
             response = {
                 'status': 'fail',
@@ -329,7 +315,7 @@ def logout(current_user):
             }
             return make_response(jsonify(response)), 400
     else:
-        response= {
+        response = {
             'status': 'fail',
             'message': 'Provide a valid auth token.'
         }
