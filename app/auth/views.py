@@ -44,7 +44,25 @@ def require_fields(*fields, **kwfields):
     return decorate
 
 
-@app.route('/auth/register', methods=['POST'])
+@app.after_request
+def apply_cross_origin_header(response):
+    """
+    This function enables CORS
+    """
+    response.headers['Access-Control-Allow-Origin'] = '*'
+
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    response.headers["Access-Control-Allow-Methods"] = "GET,HEAD,OPTIONS," \
+                                                       "POST,PUT,DELETE"
+    response.headers["Access-Control-Allow-Headers"] = "Access-Control-Allow-" \
+        "Headers, Origin,Accept, X-Requested-With, Content-Type, " \
+        "Access-Control-Request-Method, Access-Control-Request-Headers," \
+        "Access-Control-Allow-Origin, Authorization"
+
+    return response
+
+
+@app.route('/api/v1/auth/register', methods=['POST'])
 @require_fields('name', 'email', 'password')
 def register():
     """
@@ -71,7 +89,7 @@ def register():
         return make_response(jsonify(response)), 401
 
 
-@app.route('/auth/login', methods=['POST'])
+@app.route('/api/v1/auth/login', methods=['POST'])
 @require_fields('email', 'password')
 def login():
     """

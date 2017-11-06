@@ -11,8 +11,12 @@ from app.models import db, User, ShoppingList, Item, BlacklistToken
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash
 from app.auth.views import auth, require_fields
+from flask_mail import Mail, Message
+import string
+from random import *
 
 
+mail = Mail(app)
 auth = HTTPBasicAuth()
 postgres_local_base = 'postgresql://arthuroe:dbadmin@localhost/'
 database_name = 'shoppinglist'
@@ -21,7 +25,15 @@ app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
     'DATABASE_URL', postgres_local_base + database_name)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'cronica!r1m'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+mail = Mail(app)
 db.init_app(app)
 
 
@@ -91,6 +103,26 @@ def unauthorized():
     return make_response(jsonify({'error': 'Unauthorized access'}), 403)
 
 
+def send_email(subject, recipients, text_body, html_body):
+    """
+    Helper function for sending email
+    """
+    msg = Message(subject, recipients=recipients)
+    msg.sender = 'jelpacho@gmail.com'
+    msg.body = text_body
+    msg.html = html_body
+    mail.send(msg)
+
+
+def create_password():
+    """
+    Helper function for generating password
+    """
+    characters = string.ascii_letters + string.punctuation + string.digits
+    password = "".join(choice(characters) for x in range(randint(8, 16)))
+    return password
+
+
 @app.route('/')
 def index():
     """
@@ -99,7 +131,25 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/shoppinglists/<list_id>', methods=['PUT'])
+@app.route('/api/v1/mail/', methods=['POST'])
+def mail_send():
+    data = request.get_json()
+    password = create_password()
+    if not data['email']:
+        return make_response(jsonify({"message": "Email field required"})), 400
+    user = User.query.filter_by(email=data['email']).first()
+    if not user:
+        return make_response(jsonify({'message': 'User does not exist'})), 404
+    user.password = generate_password_hash(password)
+    db.session.commit()
+    send_email('Reset',
+               [data['email']],
+               'You have reset!',
+               '<p>You have successfully reset your password.<br>Use the password provided below to login again <br><strong>' + str(password) + '</strong>')
+    return jsonify({'message': 'A new password has been sent successfully to your email.'}), 200
+
+
+@app.route('/api/v1/shoppinglists/<list_id>', methods=['PUT'])
 @require_fields('name')
 def edit_list(list_id):
     """
@@ -118,7 +168,7 @@ def edit_list(list_id):
     return jsonify({'message': 'Item updated'}), 200
 
 
-@app.route('/shoppinglists', methods=['GET'])
+@app.route('/api/v1/shoppinglists', methods=['GET'])
 @token_required
 def get_all_lists(current_user):
     """
@@ -143,7 +193,7 @@ def get_all_lists(current_user):
     return jsonify({'shoppinglists': user_lists}), 200
 
 
-@app.route('/shoppinglists/<list_id>', methods=['GET'])
+@app.route('/api/v1/shoppinglists/<list_id>', methods=['GET'])
 @token_required
 def get_single_list(current_user, list_id):
     """
@@ -158,7 +208,7 @@ def get_single_list(current_user, list_id):
     return jsonify({'shoppinglist': user_lists}), 200
 
 
-@app.route('/shoppinglists/<list_id>', methods=['DELETE'])
+@app.route('/api/v1/shoppinglists/<list_id>', methods=['DELETE'])
 @token_required
 def delete_list(current_user, list_id):
     """
@@ -172,7 +222,7 @@ def delete_list(current_user, list_id):
     return jsonify({'message': 'list deleted'}), 200
 
 
-@app.route('/shoppinglists/', methods=['POST'])
+@app.route('/api/v1/shoppinglists/', methods=['POST'])
 @token_required
 @require_fields('name')
 def create_list(current_user):
@@ -192,7 +242,7 @@ def create_list(current_user):
     return jsonify({'message': 'list added'}), 201
 
 
-@app.route('/shoppinglists/<list_id>/items', methods=['POST'])
+@app.route('/api/v1/shoppinglists/<list_id>/items', methods=['POST'])
 @token_required
 @require_fields('name')
 def add_list_item(current_user, list_id):
@@ -212,7 +262,7 @@ def add_list_item(current_user, list_id):
     return jsonify({'message': 'item added'}), 201
 
 
-@app.route('/shoppinglists/<list_id>/items', methods=['GET'])
+@app.route('/api/v1/shoppinglists/<list_id>/items', methods=['GET'])
 @token_required
 def get_items(current_user, list_id):
     """
@@ -225,7 +275,7 @@ def get_items(current_user, list_id):
     return jsonify({'shoppinglist items': list_items}), 200
 
 
-@app.route('/shoppinglists/<list_id>/items/<item_id>', methods=['GET'])
+@app.route('/api/v1/shoppinglists/<list_id>/items/<item_id>', methods=['GET'])
 @token_required
 def get_single_item(current_user, list_id, item_id):
     """
@@ -237,7 +287,7 @@ def get_single_item(current_user, list_id, item_id):
     return jsonify({'shoppinglist item': list_item}), 200
 
 
-@app.route('/shoppinglists/<list_id>/items/<item_id>', methods=['PUT'])
+@app.route('/api/v1/shoppinglists/<list_id>/items/<item_id>', methods=['PUT'])
 @token_required
 @require_fields('name')
 def edit_list_item(current_user, list_id, item_id):
@@ -256,7 +306,7 @@ def edit_list_item(current_user, list_id, item_id):
     return jsonify({'message': 'item edited'}), 200
 
 
-@app.route('/shoppinglists/<list_id>/items/<item_id>', methods=['DELETE'])
+@app.route('/api/v1/shoppinglists/<list_id>/items/<item_id>', methods=['DELETE'])
 @token_required
 def delete_list_item(current_user, list_id, item_id):
     """
@@ -271,7 +321,7 @@ def delete_list_item(current_user, list_id, item_id):
     return jsonify({'message': 'item deleted'}), 200
 
 
-@app.route('/auth/reset-password', methods=['POST'])
+@app.route('/api/v1/auth/reset-password', methods=['POST'])
 @require_fields('email', 'password')
 def reset_password():
     """
@@ -289,7 +339,7 @@ def reset_password():
     return make_response(jsonify(response)), 200
 
 
-@app.route('/auth/logout', methods=['POST'])
+@app.route('/api/v1/auth/logout', methods=['POST'])
 @token_required
 def logout(current_user):
     """
