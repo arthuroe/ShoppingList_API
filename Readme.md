@@ -15,11 +15,18 @@ $ python3 -m venv shop
 
 $ source shop/bin/activate
 
-Install requirements:
+### Install requirements:
 
 $ pip install -r requirements.txt
 
-Install postgresql
+### Setup Environment variables
+export SECRET_KEY='Your_Key'
+
+export MAIL_USERNAME='Your_email_server'
+
+export MAIL_PASSWORD='Mail_server_password'
+
+### Install postgresql
 
 Create a database in postgresql
 
@@ -27,7 +34,7 @@ $ create database shopping_list
 
 $ create user
 
-## Run Migrations for the database
+### Run Migrations for the database
 
 $ python manage.py db init
 
@@ -35,11 +42,11 @@ $ python manage.py db init
 
 $ python manage.py db init
 
-## Run tests on the code in the project folder with
+### Run tests on the code in the project folder with
 
 $ Pytest
 
-## Run the application
+### Run the application
 
 Run python run.py
 
