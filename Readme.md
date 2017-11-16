@@ -21,7 +21,9 @@ $ pip install -r requirements.txt
 
 ### Setup Environment variables
 export SECRET_KEY='Your_Key'
+
 export MAIL_USERNAME='Your_email_server'
+
 export MAIL_PASSWORD='Mail_server_password'
 
 ### Install postgresql
