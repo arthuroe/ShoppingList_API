@@ -44,8 +44,8 @@ def token_required(function):
     @wraps(function)
     def wrap(*args, **kwargs):
         token = None
-        if 'access-token' in request.headers:
-            token = request.headers['access-token']
+        if 'Authorization' in request.headers:
+            token = request.headers['Authorization']
         if not token:
             return jsonify({'message': 'Token is missing!'}), 403
         is_blacklisted_token = BlacklistToken.check_blacklist(token)
@@ -79,10 +79,11 @@ def apply_cross_origin_header(response):
     response.headers["Access-Control-Allow-Credentials"] = "true"
     response.headers["Access-Control-Allow-Methods"] = "GET,HEAD,OPTIONS," \
                                                        "POST,PUT,DELETE"
-    response.headers["Access-Control-Allow-Headers"] = "Access-Control-Allow-" \
-        "Headers, Origin,Accept, X-Requested-With, Content-Type, " \
-        "Access-Control-Request-Method, Access-Control-Request-Headers," \
-        "Access-Control-Allow-Origin, Authorization"
+    # response.headers["Access-Control-Allow-Headers"] = "Access-Control-Allow-" \
+    #     "Headers, Origin,Accept, X-Requested-With, Content-Type, " \
+    #     "Access-Control-Request-Method, Access-Control-Request-Headers," \
+    #     "Access-Control-Allow-Origin, Authorization, access-token"
+    response.headers["Access-Control-Allow-Headers"] = "*"
 
     return response
 
@@ -131,8 +132,11 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/api/v1/mail/', methods=['POST'])
+@app.route('/api/v1/auth/reset-password', methods=['POST'])
 def mail_send():
+    """
+    This route enables sending a user a new password to their email address
+    """
     data = request.get_json()
     password = create_password()
     if not data['email']:
@@ -272,7 +276,7 @@ def get_items(current_user, list_id):
     list_items = []
     list_items = [item.serialize for item in shoppinglist_items]
 
-    return jsonify({'shoppinglist items': list_items}), 200
+    return jsonify({'shoppinglist_items': list_items}), 200
 
 
 @app.route('/api/v1/shoppinglists/<list_id>/items/<item_id>', methods=['GET'])
@@ -321,11 +325,11 @@ def delete_list_item(current_user, list_id, item_id):
     return jsonify({'message': 'item deleted'}), 200
 
 
-@app.route('/api/v1/auth/reset-password', methods=['POST'])
+@app.route('/api/v1/auth/change-password', methods=['POST'])
 @require_fields('email', 'password')
 def reset_password():
     """
-    This route enables a user to reset their passowrd
+    This route enables a user to reset their passowrd after login
     """
     data = request.get_json()
     email = data['email']
@@ -345,8 +349,8 @@ def logout(current_user):
     """
     This route enables a user to logout
     """
-    if 'access-token' in request.headers:
-        token = request.headers['access-token']
+    if 'Authorization' in request.headers:
+        token = request.headers['Authorization']
         # mark the token as blacklisted
         blacklist_token = BlacklistToken(token=token)
         try:

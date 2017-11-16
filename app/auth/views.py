@@ -109,7 +109,7 @@ def login():
 
     if check_password_hash(user.password, data['password']):
         payload = {
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=20),
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=500),
             'iat': datetime.datetime.utcnow(),
             'sub': user.id
         }
@@ -122,7 +122,8 @@ def login():
         response = {
             'status': 'success',
             'message': 'You logged in successfully.',
-            'access_token': jwt_string.decode()
+            'access_token': jwt_string.decode(),
+            'welcome': 'Hi ' + user.name
         }
 
         return make_response(jsonify(response)), 200
