@@ -109,7 +109,7 @@ def login():
 
     if check_password_hash(user.password, data['password']):
         payload = {
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=500),
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=5000),
             'iat': datetime.datetime.utcnow(),
             'sub': user.id
         }
