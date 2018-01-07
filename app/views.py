@@ -188,13 +188,20 @@ def get_all_lists(current_user):
         return jsonify({'shoppinglist': user_lists}), 200
     if limit:
         shoppinglists = ShoppingList.query.filter_by(
-            user_id=current_user).paginate(page, limit, False).items
-        user_lists = [i.serialize for i in shoppinglists]
+            user_id=current_user).paginate(page, limit, False)
+        response = {
+            "shoppinglists": [i.serialize for i in shoppinglists.items],
+            "pages": shoppinglists.pages,
+            "next": shoppinglists.next_num,
+            "current": shoppinglists.page,
+            "prev": shoppinglists.prev_num
+        }
+        return jsonify(response), 200
     else:
         all_shoppinglists = ShoppingList.query.filter_by(user_id=current_user).all()
         user_lists = [i.serialize for i in all_shoppinglists]
 
-    return jsonify({'shoppinglists': user_lists}), 200
+        return jsonify({'shoppinglists': user_lists}), 200
 
 
 @app.route('/api/v1/shoppinglists/<list_id>', methods=['GET'])
@@ -272,11 +279,30 @@ def get_items(current_user, list_id):
     """
     This route enables a user to view a shoppinglist's items
     """
-    shoppinglist_items = Item.query.filter_by(shoppinglist_id=list_id).all()
-    list_items = []
-    list_items = [item.serialize for item in shoppinglist_items]
-
-    return jsonify({'shoppinglist_items': list_items}), 200
+    name = request.args.get('q', '')
+    limit = request.args.get('limit', None, type=int)
+    page = request.args.get('page', 1, type=int)
+    if name:
+        shoppinglist_items = Item.query.filter_by(shoppinglist_id=list_id, name=name).all()
+        list_items = []
+        list_items = [item.serialize for item in shoppinglist_items]
+        return jsonify({'shoppinglist_items': list_items}), 200
+    if limit:
+        shoppinglist_items = Item.query.filter_by(
+            shoppinglist_id=list_id).paginate(page, limit, False)
+        response = {
+            "items": [i.serialize for i in shoppinglist_items.items],
+            "pages": shoppinglist_items.pages,
+            "next": shoppinglist_items.next_num,
+            "current": shoppinglist_items.page,
+            "prev": shoppinglist_items.prev_num
+        }
+        return jsonify(response), 200
+    else:
+        shoppinglist_items = Item.query.filter_by(shoppinglist_id=list_id).all()
+        list_items = []
+        list_items = [item.serialize for item in shoppinglist_items]
+        return jsonify({'shoppinglist_items': list_items}), 200
 
 
 @app.route('/api/v1/shoppinglists/<list_id>/items/<item_id>', methods=['GET'])
@@ -288,7 +314,7 @@ def get_single_item(current_user, list_id, item_id):
     shoppinglist_item = Item.query.filter_by(id=item_id).all()
     list_item = []
     list_item = [item.serialize for item in shoppinglist_item]
-    return jsonify({'shoppinglist item': list_item}), 200
+    return jsonify({'shoppinglist_item': list_item}), 200
 
 
 @app.route('/api/v1/shoppinglists/<list_id>/items/<item_id>', methods=['PUT'])
