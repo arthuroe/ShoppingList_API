@@ -39,6 +39,11 @@ jobs:
             sudo apt-get update && sudo apt-get install -y postgresql-client
 
       - run:
+          name: start postgres
+          command: |
+            sudo service postgresql start
+
+      - run:
           name: create psql user
           command: |
             sudo psql -c "CREATE ROLE arthuroe PASSWORD 'dbadmin' CREATEDB CREATEROLE INHERIT LOGIN;" -U postgres
