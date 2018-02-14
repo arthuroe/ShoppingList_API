@@ -30,6 +30,13 @@ jobs:
             sudo pip install coveralls
             sudo pip install pytest-cov
             sudo pip install -r requirements.txt
+
+      - run:
+          name: create psql user
+          command: |
+            psql -c "CREATE ROLE arthuroe PASSWORD 'dbadmin' CREATEDB CREATEROLE INHERIT LOGIN;" -U postgres
+            psql -c "create database shoppinglist;" -U postgres
+
       # run tests!
       - run:
           name: run tests
