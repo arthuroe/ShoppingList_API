@@ -34,7 +34,7 @@ jobs:
       - run:
           name: install psql
           command: |
-            sudo apt-get install -y postgresql-client
+            sudo apt-get update && apt-get install -y postgresql-client
 
       - run:
           name: create psql user
