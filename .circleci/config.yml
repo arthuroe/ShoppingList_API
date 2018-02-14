@@ -16,8 +16,8 @@ jobs:
       # - image: circleci/postgres:9.4
       - image:  circleci/postgres:9.6
         environment:
-          POSTGRES_USER: ubuntu
-          POSTGRES_DB: shopping_list
+          POSTGRES_USER: root
+          POSTGRES_DB: circleci
           POSTGRES_PASSWORD: ""
     working_directory: ~/ShoppingList_API
 
