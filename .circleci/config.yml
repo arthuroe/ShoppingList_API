@@ -16,8 +16,8 @@ jobs:
       # - image: circleci/postgres:9.4
       - image: circleci/postgres:9.6.2-alpine
         environment:
-          POSTGRES_USER: "arthuroe"
-          POSTGRES_DB: "shoppinglist"
+          POSTGRES_USER: "ubuntu"
+          POSTGRES_DB: "circle_test"
 
     working_directory: ~/ShoppingList_API
 
