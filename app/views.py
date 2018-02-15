@@ -18,7 +18,7 @@ from random import *
 
 mail = Mail(app)
 auth = HTTPBasicAuth()
-postgres_local_base = 'postgresql://arthuroe:dbadmin@localhost/'
+postgres_local_base = os.getenv('DATABASE_URL')
 database_name = 'shoppinglist'
 
 app.config['DEBUG'] = True
