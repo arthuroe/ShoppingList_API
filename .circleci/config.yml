@@ -51,8 +51,8 @@ jobs:
       - run:
           name: Setup the database
           command: |
-          psql -h localhost -p 5432 -c "CREATE ROLE ubuntu PASSWORD '' CREATEDB CREATEROLE INHERIT LOGIN;" -U postgres
-          psql -h localhost -p 5432 -c "create database circle_test;" -U postgres
+            psql -h localhost -p 5432 -c "CREATE ROLE ubuntu PASSWORD '' CREATEDB CREATEROLE INHERIT LOGIN;" -U postgres
+            psql -h localhost -p 5432 -c "create database circle_test;" -U postgres
 
       # run tests!
       - run:
