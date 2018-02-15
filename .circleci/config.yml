@@ -26,6 +26,7 @@ jobs:
       - run:
           name: install testing dependencies
           command: |
+            python3 -m venv venv
             . venv/bin/activate
             sudo pip install coverage
             sudo pip install coveralls
