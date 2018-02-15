@@ -27,7 +27,7 @@ jobs:
           name: install testing dependencies
           command: |
             sudo pip install coverage
-            sudo pip install yaml
+            sudo pip install pyyaml
             sudo pip install coveralls
             sudo pip install pytest-cov
             sudo pip install -r requirements.txt
