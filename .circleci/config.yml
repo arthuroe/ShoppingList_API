@@ -33,13 +33,6 @@ jobs:
             sudo pip install pytest-cov
             sudo pip install -r requirements.txt
 
-      - run:
-          name: install psql
-          command: |
-            sudo apt-get update && sudo apt-get install -y postgresql-client
-
-
-
 
       # run tests!
       - run:
