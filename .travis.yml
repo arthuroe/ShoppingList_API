@@ -1,3 +1,5 @@
+sudo: required
+
 language:
 - python
 
@@ -15,6 +17,7 @@ install:
 
 services:
 - postgresql
+- docker
 
 before_script:
 - psql -c "CREATE ROLE arthuroe PASSWORD 'dbadmin' CREATEDB CREATEROLE INHERIT LOGIN;" -U postgres
