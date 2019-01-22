@@ -37,9 +37,7 @@ def require_fields(*fields, **kwfields):
                     return jsonify({
                         "error_msg": "Invalid {}".format(key)
                     })
-
             return func(*args, **kwargs)
-
         return wrap
     return decorate
 
@@ -58,7 +56,6 @@ def apply_cross_origin_header(response):
         "Headers, Origin,Accept, X-Requested-With, Content-Type, " \
         "Access-Control-Request-Method, Access-Control-Request-Headers," \
         "Access-Control-Allow-Origin, Authorization"
-
     return response
 
 
@@ -73,7 +70,8 @@ def register():
         return make_response(jsonify({"message": "All fields are required"})), 403
     user = User.query.filter_by(email=data['email'],).first()
     if not user:
-        new_user = User(name=data['name'], email=data['email'], password=data['password'])
+        new_user = User(
+            name=data['name'], email=data['email'], password=data['password'])
         db.session.add(new_user)
         db.session.commit()
         response = {
@@ -118,16 +116,13 @@ def login():
             app.config['SECRET_KEY'],
             algorithm='HS256'
         )
-
         response = {
             'status': 'success',
             'message': 'You logged in successfully.',
             'access_token': jwt_string.decode(),
             'welcome': 'Hi ' + user.name
         }
-
         return make_response(jsonify(response)), 200
-
     else:
         response = {
             'message': 'Failed to login'
