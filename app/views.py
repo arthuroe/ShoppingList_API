@@ -18,12 +18,12 @@ from random import *
 
 mail = Mail(app)
 auth = HTTPBasicAuth()
-postgres_local_base = 'postgresql://arthuroe:dbadmin@localhost/'
+postgres_local_base = os.getenv('DATABASE_URL')
 database_name = 'shoppinglist'
 
 app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
-    'DATABASE_URL', postgres_local_base + database_name)
+    'DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
@@ -79,10 +79,6 @@ def apply_cross_origin_header(response):
     response.headers["Access-Control-Allow-Credentials"] = "true"
     response.headers["Access-Control-Allow-Methods"] = "GET,HEAD,OPTIONS," \
                                                        "POST,PUT,DELETE"
-    # response.headers["Access-Control-Allow-Headers"] = "Access-Control-Allow-" \
-    #     "Headers, Origin,Accept, X-Requested-With, Content-Type, " \
-    #     "Access-Control-Request-Method, Access-Control-Request-Headers," \
-    #     "Access-Control-Allow-Origin, Authorization, access-token"
     response.headers["Access-Control-Allow-Headers"] = "*"
 
     return response
