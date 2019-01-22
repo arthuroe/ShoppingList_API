@@ -80,7 +80,6 @@ def apply_cross_origin_header(response):
     response.headers["Access-Control-Allow-Methods"] = "GET,HEAD,OPTIONS," \
                                                        "POST,PUT,DELETE"
     response.headers["Access-Control-Allow-Headers"] = "*"
-
     return response
 
 
@@ -179,7 +178,8 @@ def get_all_lists(current_user):
     page = request.args.get('page', 1, type=int)
     user_lists = []
     if name:
-        shopping_list = ShoppingList.query.filter_by(user_id=current_user, name=name).all()
+        shopping_list = ShoppingList.query.filter_by(
+            user_id=current_user, name=name).all()
         user_lists = [i.serialize for i in shopping_list]
         return jsonify({'shoppinglist': user_lists}), 200
     if limit:
@@ -194,7 +194,8 @@ def get_all_lists(current_user):
         }
         return jsonify(response), 200
     else:
-        all_shoppinglists = ShoppingList.query.filter_by(user_id=current_user).all()
+        all_shoppinglists = ShoppingList.query.filter_by(
+            user_id=current_user).all()
         user_lists = [i.serialize for i in all_shoppinglists]
 
         return jsonify({'shoppinglists': user_lists}), 200
@@ -279,7 +280,8 @@ def get_items(current_user, list_id):
     limit = request.args.get('limit', None, type=int)
     page = request.args.get('page', 1, type=int)
     if name:
-        shoppinglist_items = Item.query.filter_by(shoppinglist_id=list_id, name=name).all()
+        shoppinglist_items = Item.query.filter_by(
+            shoppinglist_id=list_id, name=name).all()
         list_items = []
         list_items = [item.serialize for item in shoppinglist_items]
         return jsonify({'shoppinglist_items': list_items}), 200
@@ -295,7 +297,8 @@ def get_items(current_user, list_id):
         }
         return jsonify(response), 200
     else:
-        shoppinglist_items = Item.query.filter_by(shoppinglist_id=list_id).all()
+        shoppinglist_items = Item.query.filter_by(
+            shoppinglist_id=list_id).all()
         list_items = []
         list_items = [item.serialize for item in shoppinglist_items]
         return jsonify({'shoppinglist_items': list_items}), 200
