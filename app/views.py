@@ -19,13 +19,9 @@ from random import *
 mail = Mail(app)
 auth = HTTPBasicAuth()
 postgres_local_base = os.getenv('DATABASE_URL')
-database_name = 'shoppinglist'
 
-app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
     'DATABASE_URL')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465

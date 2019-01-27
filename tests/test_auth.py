@@ -16,7 +16,8 @@ class AuthTestCase(unittest.TestCase):
         self.db_fd, app.config['DATABASE'] = tempfile.mkstemp()
         app.testing = True
         self.app = app.test_client()
-        self.user_data = {"name": "test", "email": "test@gmail.com", "password": "test"}
+        self.user_data = {"name": "test",
+                          "email": "test@gmail.com", "password": "test"}
         with app.app_context():
             db.drop_all()
             db.create_all()
@@ -83,7 +84,8 @@ class AuthTestCase(unittest.TestCase):
                              content_type='application/json')
 
         data = json.loads(rese.data.decode())
-        self.assertEqual(data['message'], "You have successfully changed your password.")
+        self.assertEqual(
+            data['message'], "You have successfully changed your password.")
         self.assertEqual(rese.status_code, 200)
 
     def test_non_user_cannot_change_password(self):
