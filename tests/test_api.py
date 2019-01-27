@@ -15,7 +15,6 @@ class AuthTestCase(unittest.TestCase):
 
     def setUp(self):
         self.db_fd, app.config['DATABASE'] = tempfile.mkstemp()
-        app.testing = True
         self.app = app.test_client()
         self.shopping_list = {"name": "test_list"}
         self.item = {"name": "test_item"}
